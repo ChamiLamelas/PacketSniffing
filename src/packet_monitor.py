@@ -12,6 +12,7 @@ from collections import Counter, namedtuple
 import threading
 import time
 import argparse
+import platform
 
 import misc
 
@@ -117,6 +118,10 @@ def __get_cmdline_args():
     update_transfer_frequency = args.t
     update_sockets_frequency = args.s
     total_sniffing_time = args.total_sniffing_time
+    assert update_sockets_frequency > 0
+    assert update_transfer_frequency > 0
+    assert total_sniffing_time > 0
+    assert platform.python_implementation().lower() == "cpython"
     return update_transfer_frequency, update_sockets_frequency, total_sniffing_time
 
 
