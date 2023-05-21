@@ -33,3 +33,7 @@ def read_object(path):
 def save_plot(path):
     plt.savefig(path, bbox_inches='tight', format='pdf')
     plt.close()
+
+
+def totals_to_transfers(totals):
+    return [e - totals[i - 1] for i, e in enumerate(totals[1:], start=1)]

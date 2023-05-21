@@ -18,8 +18,8 @@ def get_full_run_path(run):
 
 def _get_time_and_freq():
     parser = argparse.ArgumentParser()
-    parser.add_argument("time", type=int)
-    parser.add_argument("frequency", type=float)
+    parser.add_argument("time", type=int, help="total time (min)")
+    parser.add_argument("-f", "--frequency", type=float, help="logging frequency (sec)", default=1)
     args = parser.parse_args()
     return args.time, args.frequency
 
@@ -34,16 +34,18 @@ def _monitor(total_time, frequency):
     for i in range(secs):
         if i > 0:
             time.sleep(frequency)
+        ti = time.time()
         wifi_use = psutil.net_io_counters(pernic=True)["Wi-Fi"]
         megabits_sent = _bytes_to_mb(wifi_use.bytes_sent)
         megabits_recv = _bytes_to_mb(wifi_use.bytes_recv)
         log.append(megabits_sent + megabits_recv)
+        tf = time.time()
+        print(tf - ti)
     return log
 
 
 def _collect_stats(log):
-    transfers = [e - log[i - 1] for i, e in enumerate(log[1:], start=1)]
-    misc.save_object(transfers, os.path.join(get_full_run_path(misc.formatted_now()), "log.pkl"))
+    misc.save_object(misc.totals_to_transfers(log), os.path.join(get_full_run_path(misc.formatted_now()), "log.pkl"))
 
 
 def main():

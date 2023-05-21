@@ -68,12 +68,19 @@ class ApplicationPacketSniffer:
         thread.start()
         return thread
 
+    # have to determine how long it takes to perform the updates in log table compared with
+    # sleep time. i checked sleep is per thread, so it must be that the extra
+    # work being done is what contributes to each step seeming to take 2-3 seconds instead of 1
+    # and the overall process double or more the time
+    # should compare with the time per logging step of monitor
+
     def __log_transfers(self):
         num_collections = int(self.__total_sniffing_time_sec / self.__update_transfer_frequency_sec)
         for i in range(num_collections):
             if i > 0:
                 time.sleep(self.__update_transfer_frequency_sec)
 
+            ti = time.time()
             for packet_id in list(self.__update_transfer_table.keys()):
                 lookup, direction = None, None
                 if packet_id in self.__translation_table:
@@ -93,6 +100,8 @@ class ApplicationPacketSniffer:
                              self.__update_transfer_table[packet_id]])
                     except psutil.NoSuchProcess:
                         pass
+            tf = time.time()
+            print(f"{tf - ti:.4f}s {len(self.__update_transfer_table)} {len(self.__translation_table)}")
 
     def __start_logging_transfers(self):
         thread = threading.Thread(target=self.__log_transfers)
@@ -111,12 +120,12 @@ class ApplicationPacketSniffer:
 
 def __get_cmdline_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--t", "--update_transfer_frequency", type=int, help="Update Transfer Frequency (s)", default=1)
-    parser.add_argument("--s", "--update_sockets_frequency", type=int, help="Update Sockets Frequency (s)", default=1)
+    parser.add_argument("-t", "--update_transfer_frequency", type=int, help="Update Transfer Frequency (s)", default=1)
+    parser.add_argument("-s", "--update_sockets_frequency", type=int, help="Update Sockets Frequency (s)", default=1)
     parser.add_argument("total_sniffing_time", type=int, help="Total Sniffing Time (min)")
     args = parser.parse_args()
-    update_transfer_frequency = args.t
-    update_sockets_frequency = args.s
+    update_transfer_frequency = args.update_transfer_frequency
+    update_sockets_frequency = args.update_sockets_frequency
     total_sniffing_time = args.total_sniffing_time
     assert update_sockets_frequency > 0
     assert update_transfer_frequency > 0

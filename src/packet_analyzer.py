@@ -29,11 +29,14 @@ def load_df(run):
 def _system_time_series(df, run):
     system_totals = df.groupby("log_timestamp_sec")["total_transfer_size_megabits"].sum()
     timestamps = np.array(system_totals.index.tolist())[1:]
-    values = system_totals.values
-    transfers = [e - values[i - 1] for i, e in enumerate(values[1:], start=1)]
+    transfers = misc.totals_to_transfers(system_totals.values)
     _, ax = plt.subplots()
     ax.plot(timestamps, transfers)
     misc.save_plot(os.path.join(packet_monitor.get_full_run_path(run), "system_time_series.pdf"))
+
+
+def _process_time_series(df, run):
+    misc.save_plot(os.path.join(packet_monitor.get_full_run_path(run), "process_time_series.pdf"))
 
 
 def main():
